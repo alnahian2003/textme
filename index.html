@@ -13,6 +13,9 @@
     <!-- Tailwindcss CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- VueJS CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
     <!-- Inter Font CDN -->
     <link
       rel="preconnect"
@@ -34,7 +37,7 @@
     </style>
   </head>
 
-  <body>
+  <body id="app">
     <div class="flex-1 p:2 sm:p-6 flex flex-col h-screen">
       <!-- User Profile -->
       <div class="flex sm:items-center py-3 border-b-2 border-gray-200">
@@ -52,19 +55,17 @@
               </svg>
             </span>
             <img
-              src="https://avatars.githubusercontent.com/u/61485238?v=4"
-              alt=""
+              :src="user.avatar"
+              :alt="user.name"
               class="w-10 sm:w-16 h-10 sm:h-16 rounded-full" />
           </div>
 
           <!-- About the User -->
           <div class="flex flex-col leading-tight">
             <div class="text-4xl mt-1 flex items-center">
-              <span class="text-gray-700 mr-3">Al Nahian</span>
+              <span class="text-gray-700 mr-3">{{ user.name }}</span>
             </div>
-            <span class="text-xl text-gray-600"
-              >PHP | Laravel | Vue | Inertia Enthusiast</span
-            >
+            <span class="text-xl text-gray-600"> {{ user.bio }} </span>
           </div>
         </div>
       </div>
@@ -73,76 +74,43 @@
       <div
         id="messages"
         class="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-emerald scrollbar-thumb-rounded scrollbar-track-emerald-lighter scrollbar-w-2 scrolling-touch mt-auto">
-        <div class="chat-message">
-          <div class="flex items-end justify-end">
-            <div
-              class="flex flex-col space-y-2 text-xl max-w-xl mx-2 order-1 items-end">
-              <div>
-                <span
-                  class="px-4 py-2 rounded-lg inline-block rounded-br-none bg-emerald-600 text-white"
-                  >Learn about localization in Laravel</span
-                >
+        <template v-if="messages.length">
+          <div
+            v-for="message in messages"
+            class="chat-message">
+            <div class="flex items-end justify-end">
+              <div
+                class="flex flex-col space-y-2 text-xl max-w-xl mx-2 order-1 items-end">
+                <div>
+                  <span
+                    class="px-4 py-2 rounded-lg inline-block rounded-br-none bg-emerald-600 text-white"
+                    >{{ message }}</span
+                  >
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </template>
 
-        <div class="chat-message">
-          <div class="flex items-end justify-end">
-            <div
-              class="flex flex-col space-y-2 text-xl max-w-xl mx-2 order-1 items-end">
-              <div>
-                <span
-                  class="px-4 py-2 rounded-lg inline-block rounded-br-none bg-emerald-600 text-white"
-                  >Any updates on this issue? I'm getting the same error when
-                  trying to install devtools. Thanks</span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="chat-message">
-          <div class="flex items-end justify-end">
-            <div
-              class="flex flex-col space-y-2 text-xl max-w-xl mx-2 order-1 items-end">
-              <div>
-                <span
-                  class="px-4 py-2 rounded-lg inline-block rounded-br-none bg-emerald-600 text-white"
-                  >Run this command sudo chown -R `whoami`
-                  /Users/{{your_user_profile}}/.npm-global/ then install the
-                  package globally without using sudo</span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="chat-message">
-          <div class="flex items-end justify-end">
-            <div
-              class="flex flex-col space-y-2 text-xl max-w-xl mx-2 order-1 items-end">
-              <div>
-                <span
-                  class="px-4 py-2 rounded-lg inline-block rounded-br-none bg-emerald-600 text-white"
-                  >yes, I have a mac. I never had issues with root permission as
-                  well, but this helped me to solve the problem</span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
+        <template v-else>
+          <h2 class="text-xl font-bold text-gray-700">
+            You don't have any message yet
+          </h2>
+        </template>
       </div>
 
       <!-- Form -->
       <div class="border-t-2 border-gray-200 px-4 pt-4 mb-2 sm:mb-0">
         <div class="relative flex">
           <input
+            v-model="message"
+            @keyup.enter="addMessage"
             type="text"
             placeholder="Write your message!"
             class="w-full focus:outline-none focus:placeholder-gray-400 text-gray-600 placeholder-gray-600 pl-4 bg-gray-200 rounded-md py-3" />
           <div class="absolute right-0 items-center inset-y-0 hidden sm:flex">
             <button
+              @click="addMessage"
               type="button"
               class="inline-flex items-center justify-center rounded-lg px-4 py-3 transition duration-500 ease-in-out text-white bg-emerald-500 hover:bg-emerald-400 focus:outline-none">
               <span class="font-bold">Send</span>
@@ -163,6 +131,40 @@
     <script>
       const el = document.getElementById('messages');
       el.scrollTop = el.scrollHeight;
+
+      const { createApp, ref, reactive } = Vue;
+
+      createApp({
+        setup() {
+          const message = ref('');
+
+          const messages = ref([
+            'check the notes',
+            'write an email to the boss',
+            'bla bla bla',
+          ]);
+
+          const user = reactive({
+            name: 'Al Nahian',
+            bio: 'PHP | Laravel | Vue | Inertia Enthusiast',
+            avatar: 'https://avatars.githubusercontent.com/u/61485238?v=4',
+          });
+
+          const addMessage = () => {
+            if (!message.value) {
+              return;
+            }
+            
+            // message push kora
+            messages.value.push(message.value);
+
+            // clear the message
+            message.value = '';
+          };
+
+          return { message, messages, user, addMessage };
+        },
+      }).mount('#app');
     </script>
   </body>
 </html>
